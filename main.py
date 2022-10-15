@@ -1,46 +1,41 @@
-from pxr import Usd, UsdGeom
+
 import os
 
-output_dir = os.path.join(os.path.join(os.path.dirname(__file__), ))
-main_stage = os.path.join(os.path.dirname(__file__), 'main.usda')
-ref_stage = os.path.join(os.path.dirname(__file__), 'ref.usda')
+from pxr import Usd, UsdGeom
+import shutil
 
 
-def setup_workarea(path):
+def setup_workarea(root):
+    out_dir = os.path.join(root, 'output')
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+    return out_dir
 
 
-
-
-
-
-
+def get_stage(full_path):
+    if os.path.isfile(full_path):
+        return Usd.Stage.Open(full_path)
+    return Usd.Stage.CreateNew(full_path)
 
 
 if __name__ == '__main__':
+    directory = os.path.dirname(__file__)
+    output_dir = setup_workarea(directory)
 
-out_dir = r"C:\Users\Administrator\Documents\usdOutput"
-if not os.path.isdir(out_dir):
-    os.makedirs(out_dir)
-file_name = 'newName.usda'
-os.chdir(out_dir)
+    main_stage_file = os.path.join(output_dir, 'main.usda')
+    ref_stage_file = os.path.join(output_dir, 'ref.usda')
 
+    main_stage = get_stage(main_stage_file)
+    ref_stage = get_stage(ref_stage_file)
 
-full_path = os.path.join(out_dir, file_name)
-if os.path.isfile(full_path):
-    stage = Usd.Stage.Open(file_name)
-else:
-    stage = Usd.Stage.CreateNew(file_name)
-stage.RemovePrim('/root')
+    main_stage.RemovePrim('/root')
 
-rootTransformPrim = stage.DefinePrim('/root', 'Xform')
-sphereTransformPrim = stage.DefinePrim('/root/sphere', 'Xform')
+    rootTransformPrim = main_stage.DefinePrim('/root', 'Xform')
+    sphereTransformPrim = main_stage.DefinePrim('/root/sphere', 'Xform')
 
-sphereTransformApi = UsdGeom.XformCommonAPI(sphereTransformPrim)
-sphereTransformApi.SetTranslate((4, 5, 6))
-
-cubeTransformPrim = stage.DefinePrim('/root/cube', 'Xform')
-#xformPrim = stage.DefinePrim('/hello', 'Xform')
-sphereShapePrim = UsdGeom.Sphere.Define(stage, '/root/sphere/sphereShape')
-cubeShapePrim = stage.DefinePrim('/root/cube/cubeShape', 'Cube')
-
-stage.GetRootLayer().Save()
+    sphereTransformApi = UsdGeom.XformCommonAPI(sphereTransformPrim)
+    sphereTransformApi.SetTranslate((4, 5, 6))
+    cubeTransformPrim = main_stage.DefinePrim('/root/cube', 'Xform')
+    sphereShapePrim = UsdGeom.Sphere.Define(main_stage, '/root/sphere/sphereShape')
+    cubeShapePrim = main_stage.DefinePrim('/root/cube/cubeShape', 'Cube')
+    main_stage.GetRootLayer().Save()
